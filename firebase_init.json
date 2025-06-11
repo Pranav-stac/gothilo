@@ -1,0 +1,179 @@
+{
+  "india": {
+    "gujarat": {
+      "ahmedabad": {
+        "services": {
+          "bus": {
+            "amts": {
+              "routes": {
+                "1": {
+                  "route_short_name": "1",
+                  "route_long_name": "Maninagar to Paldi",
+                  "route_desc": "Main city route connecting east to west",
+                  "route_type": 3,
+                  "route_color": "FF0000",
+                  "route_text_color": "FFFFFF"
+                },
+                "2": {
+                  "route_short_name": "2",
+                  "route_long_name": "Isanpur to Vastrapur",
+                  "route_desc": "Cross-city route via SG Highway",
+                  "route_type": 3,
+                  "route_color": "00FF00",
+                  "route_text_color": "000000"
+                },
+                "3": {
+                  "route_short_name": "3",
+                  "route_long_name": "Naroda to Bopal",
+                  "route_desc": "North to south connectivity",
+                  "route_type": 3,
+                  "route_color": "0000FF",
+                  "route_text_color": "FFFFFF"
+                }
+              },
+              "stops": {
+                "AMTS001": {
+                  "stop_name": "Maninagar Railway Station",
+                  "stop_desc": "Main railway station in east Ahmedabad",
+                  "stop_lat": 23.0225,
+                  "stop_lon": 72.5714,
+                  "zone_id": "East"
+                },
+                "AMTS002": {
+                  "stop_name": "Paldi Bus Stand",
+                  "stop_desc": "Major bus terminal in west Ahmedabad",
+                  "stop_lat": 23.0225,
+                  "stop_lon": 72.5714,
+                  "zone_id": "West"
+                },
+                "AMTS003": {
+                  "stop_name": "Isanpur Circle",
+                  "stop_desc": "Major junction in northeast",
+                  "stop_lat": 23.0825,
+                  "stop_lon": 72.6314,
+                  "zone_id": "Northeast"
+                }
+              },
+              "schedules": {
+                "1": {
+                  "trip_1_weekday": {
+                    "trip_id": "trip_1_weekday",
+                    "route_id": "1",
+                    "service_id": "weekday",
+                    "trip_headsign": "Paldi",
+                    "direction_id": 0,
+                    "stop_times": [
+                      {
+                        "trip_id": "trip_1_weekday",
+                        "arrival_time": "06:00:00",
+                        "departure_time": "06:00:00",
+                        "stop_id": "AMTS001",
+                        "stop_sequence": 1,
+                        "pickup_type": 0,
+                        "drop_off_type": 0
+                      },
+                      {
+                        "trip_id": "trip_1_weekday",
+                        "arrival_time": "06:45:00",
+                        "departure_time": "06:45:00",
+                        "stop_id": "AMTS002",
+                        "stop_sequence": 2,
+                        "pickup_type": 0,
+                        "drop_off_type": 0
+                      }
+                    ]
+                  }
+                }
+              },
+              "fares": {
+                "regular": {
+                  "fare_id": "regular",
+                  "price": 10.0,
+                  "currency_type": "INR",
+                  "payment_method": 1,
+                  "transfers": 0
+                }
+              }
+            },
+            "brts": {
+              "routes": {
+                "B1": {
+                  "route_short_name": "B1",
+                  "route_long_name": "Vijaynagar to Kankaria",
+                  "route_desc": "BRTS corridor route",
+                  "route_type": 3,
+                  "route_color": "FF6600",
+                  "route_text_color": "FFFFFF"
+                },
+                "B2": {
+                  "route_short_name": "B2",
+                  "route_long_name": "Naroda to Thaltej",
+                  "route_desc": "Main BRTS trunk route",
+                  "route_type": 3,
+                  "route_color": "9900CC",
+                  "route_text_color": "FFFFFF"
+                }
+              },
+              "stops": {
+                "BRTS001": {
+                  "stop_name": "Vijaynagar BRTS",
+                  "stop_desc": "BRTS station in Vijaynagar",
+                  "stop_lat": 23.0395,
+                  "stop_lon": 72.5664,
+                  "zone_id": "Central"
+                },
+                "BRTS002": {
+                  "stop_name": "Kankaria BRTS",
+                  "stop_desc": "BRTS station near Kankaria Lake",
+                  "stop_lat": 23.0095,
+                  "stop_lon": 72.5964,
+                  "zone_id": "South"
+                }
+              },
+              "schedules": {
+                "B1": {
+                  "trip_b1_weekday": {
+                    "trip_id": "trip_b1_weekday",
+                    "route_id": "B1",
+                    "service_id": "weekday",
+                    "trip_headsign": "Kankaria",
+                    "direction_id": 0,
+                    "stop_times": [
+                      {
+                        "trip_id": "trip_b1_weekday",
+                        "arrival_time": "06:15:00",
+                        "departure_time": "06:15:00",
+                        "stop_id": "BRTS001",
+                        "stop_sequence": 1,
+                        "pickup_type": 0,
+                        "drop_off_type": 0
+                      },
+                      {
+                        "trip_id": "trip_b1_weekday",
+                        "arrival_time": "06:35:00",
+                        "departure_time": "06:35:00",
+                        "stop_id": "BRTS002",
+                        "stop_sequence": 2,
+                        "pickup_type": 0,
+                        "drop_off_type": 0
+                      }
+                    ]
+                  }
+                }
+              },
+              "fares": {
+                "regular": {
+                  "fare_id": "regular",
+                  "price": 8.0,
+                  "currency_type": "INR",
+                  "payment_method": 1,
+                  "transfers": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+} 

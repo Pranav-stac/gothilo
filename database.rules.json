@@ -1,0 +1,74 @@
+{
+  "rules": {
+    "india": {
+      "gujarat": {
+        "ahmedabad": {
+          "services": {
+            "bus": {
+              ".read": true,
+              ".write": false,
+              "amts": {
+                "routes": {
+                  ".read": true,
+                  ".write": false
+                },
+                "stops": {
+                  ".read": true,
+                  ".write": false
+                },
+                "schedules": {
+                  ".read": true,
+                  ".write": false
+                },
+                "fares": {
+                  ".read": true,
+                  ".write": false
+                }
+              },
+              "brts": {
+                "routes": {
+                  ".read": true,
+                  ".write": false
+                },
+                "stops": {
+                  ".read": true,
+                  ".write": false
+                },
+                "schedules": {
+                  ".read": true,
+                  ".write": false
+                },
+                "fares": {
+                  ".read": true,
+                  ".write": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "user_data": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        "favorites": {
+          ".read": "$uid === auth.uid",
+          ".write": "$uid === auth.uid"
+        },
+        "trip_history": {
+          ".read": "$uid === auth.uid",
+          ".write": "$uid === auth.uid"
+        },
+        "preferences": {
+          ".read": "$uid === auth.uid",
+          ".write": "$uid === auth.uid"
+        }
+      }
+    },
+    "analytics": {
+      ".read": false,
+      ".write": true
+    }
+  }
+} 

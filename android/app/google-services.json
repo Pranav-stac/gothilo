@@ -1,0 +1,30 @@
+{
+    "project_info": {
+      "project_number": "822986424806",
+      "firebase_url": "https://gothilo-default-rtdb.asia-southeast1.firebasedatabase.app",
+      "project_id": "gothilo",
+      "storage_bucket": "gothilo.firebasestorage.app"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:822986424806:android:d39507a45a187c33bf5627",
+          "android_client_info": {
+            "package_name": "com.gothilo"
+          }
+        },
+        "oauth_client": [],
+        "api_key": [
+          {
+            "current_key": "AIzaSyAXup2x4SdjhNF0JrD6N0OqTieJl_naO3I"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": []
+          }
+        }
+      }
+    ],
+    "configuration_version": "1"
+  }
