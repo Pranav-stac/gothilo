@@ -1,4 +1,4 @@
-package com.example.gothilo
+package com.gothilo
 
 import io.flutter.embedding.android.FlutterActivity
 

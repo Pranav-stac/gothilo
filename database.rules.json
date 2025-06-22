@@ -1,5 +1,7 @@
 {
   "rules": {
+    ".read": true,
+    ".write": false,
     "india": {
       "gujarat": {
         "ahmedabad": {
@@ -18,7 +20,76 @@
                 },
                 "schedules": {
                   ".read": true,
+                  ".write": false,
+                  "WEEKDAY": {
+                    "trips": {
+                      ".indexOn": ["route_id"]
+                    }
+                  }
+                },
+                "fares": {
+                  ".read": true,
                   ".write": false
+                },
+                "trips": {
+                  ".indexOn": ["route_id"]
+                }
+              },
+              "brts": {
+                "routes": {
+                  ".read": true,
+                  ".write": false
+                },
+                "stops": {
+                  ".read": true,
+                  ".write": false
+                },
+                "schedules": {
+                  ".read": true,
+                  ".write": false,
+                  "WEEKDAY": {
+                    "trips": {
+                      ".indexOn": ["route_id"]
+                    }
+                  }
+                },
+                "fares": {
+                  ".read": true,
+                  ".write": false
+                },
+                "trips": {
+                  ".indexOn": ["route_id"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "in": {
+      "gujarat": {
+        "ahmedabad": {
+          "services": {
+            "bus": {
+              ".read": true,
+              ".write": false,
+              "amts": {
+                "routes": {
+                  ".read": true,
+                  ".write": false
+                },
+                "stops": {
+                  ".read": true,
+                  ".write": false
+                },
+                "schedules": {
+                  ".read": true,
+                  ".write": false,
+                  "WEEKDAY": {
+                    "trips": {
+                      ".indexOn": ["route_id"]
+                    }
+                  }
                 },
                 "fares": {
                   ".read": true,
@@ -36,7 +107,12 @@
                 },
                 "schedules": {
                   ".read": true,
-                  ".write": false
+                  ".write": false,
+                  "WEEKDAY": {
+                    "trips": {
+                      ".indexOn": ["route_id"]
+                    }
+                  }
                 },
                 "fares": {
                   ".read": true,

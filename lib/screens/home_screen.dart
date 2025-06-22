@@ -175,7 +175,10 @@ class HomeScreen extends StatelessWidget {
                           fullName: AppConstants.amtsFullName,
                           routeCount: provider.amtsRoutes.length,
                           color: const Color(0xFF007BFF),
-                          onTap: () => provider.selectAgency(AppConstants.amtsAgency),
+                          onTap: () {
+                            provider.selectAgency(AppConstants.amtsAgency);
+                            Navigator.pushNamed(context, '/routes');
+                          },
                         ),
                         const SizedBox(height: 12),
                         _AgencyCard(
@@ -183,7 +186,10 @@ class HomeScreen extends StatelessWidget {
                           fullName: AppConstants.brtsFullName,
                           routeCount: provider.brtsRoutes.length,
                           color: const Color(0xFFFF6B35),
-                          onTap: () => provider.selectAgency(AppConstants.brtsAgency),
+                          onTap: () {
+                            provider.selectAgency(AppConstants.brtsAgency);
+                            Navigator.pushNamed(context, '/routes');
+                          },
                         ),
                       ],
                     ),
@@ -243,6 +249,7 @@ class HomeScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           // Quick trip planner
+          Navigator.pushNamed(context, '/trip-planner');
         },
         icon: const Icon(Icons.directions),
         label: const Text('Plan Trip'),
@@ -350,14 +357,7 @@ class _AgencyCard extends StatelessWidget {
                         color: Colors.grey[600],
                       ),
                     ),
-                    Text(
-                      '$routeCount routes',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: color,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                
                   ],
                 ),
               ),

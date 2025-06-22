@@ -147,6 +147,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // Navigate to trip planner screen
+          Navigator.pushNamed(context, '/trip-planner');
+        },
+        icon: const Icon(Icons.directions),
+        label: const Text('Plan Trip'),
+      ),
     );
   }
 }

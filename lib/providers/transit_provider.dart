@@ -69,7 +69,7 @@ class TransitProvider with ChangeNotifier {
       // Initialize location service
       await _locationService.initialize();
       
-      // Load initial data
+      // Load initial data without limits
       await loadRoutes();
       await loadStops();
       await loadFares();
@@ -84,28 +84,40 @@ class TransitProvider with ChangeNotifier {
 
   // Load all routes
   Future<void> loadRoutes({String? agency}) async {
+    _setLoading(true);
     try {
-      _routes = await _firebaseService.getRoutesForService('bus', agency ?? 'ahmedabad');
+      print('Loading routes for agency: ${agency ?? "all"}');
+      _routes = await _firebaseService.getRoutes(agency: agency);
+      print('Loaded ${_routes.length} routes');
       notifyListeners();
     } catch (e) {
       _setError('Failed to load routes: ${e.toString()}');
+    } finally {
+      _setLoading(false);
     }
   }
 
   // Load all stops
   Future<void> loadStops({String? agency}) async {
+    _setLoading(true);
     try {
-      _stops = await _firebaseService.getStopsForService('bus', agency ?? 'ahmedabad');
+      print('Loading stops for agency: ${agency ?? "all"}');
+      _stops = await _firebaseService.getStops(agency: agency);
+      print('Loaded ${_stops.length} stops');
       notifyListeners();
     } catch (e) {
       _setError('Failed to load stops: ${e.toString()}');
+    } finally {
+      _setLoading(false);
     }
   }
 
   // Load fares
   Future<void> loadFares({String? agency}) async {
     try {
+      print('Loading fares for agency: ${agency ?? "all"}');
       _fares = await _firebaseService.getFares(agency: agency);
+      print('Loaded ${_fares.length} fares');
       notifyListeners();
     } catch (e) {
       _setError('Failed to load fares: ${e.toString()}');
@@ -118,24 +130,35 @@ class TransitProvider with ChangeNotifier {
     notifyListeners();
     
     try {
-      final position = await _locationService.getLocationWithFallback();
-      
-      if (position != null) {
-        _nearbyStops = await _firebaseService.getNearbyStops(
-          position.latitude,
-          position.longitude,
-          radiusKm: AppConstants.nearbyStopsRadius,
-        );
+      print('Loading nearby stops');
+      // COMMENTED OUT: Location-based filtering
+      // final position = await _locationService.getLocationWithFallback();
+      // 
+      // if (position != null) {
+      //   _nearbyStops = await _firebaseService.getNearbyStops(
+      //     position.latitude,
+      //     position.longitude,
+      //     radiusKm: AppConstants.nearbyStopsRadius,
+      //   );
+      // } else {
+      //   // Use default location if GPS unavailable
+      //   final defaultPos = _locationService.getDefaultLocation();
+      //   _nearbyStops = await _firebaseService.getNearbyStops(
+      //     defaultPos.latitude,
+      //     defaultPos.longitude,
+      //     radiusKm: AppConstants.nearbyStopsRadius,
+      //   );
+      // }
+
+      // If _stops is already populated, use it
+      if (_stops.isNotEmpty) {
+        _nearbyStops = _stops.take(30).toList();
       } else {
-        // Use default location if GPS unavailable
-        final defaultPos = _locationService.getDefaultLocation();
-        _nearbyStops = await _firebaseService.getNearbyStops(
-          defaultPos.latitude,
-          defaultPos.longitude,
-          radiusKm: AppConstants.nearbyStopsRadius,
-        );
+        // Otherwise load directly
+        _nearbyStops = await _firebaseService.getStops();
       }
       
+      print('Loaded ${_nearbyStops.length} nearby stops');
       notifyListeners();
     } catch (e) {
       _setError('Failed to load nearby stops: ${e.toString()}');
@@ -147,35 +170,57 @@ class TransitProvider with ChangeNotifier {
 
   // Select agency and load its data
   Future<void> selectAgency(String agency) async {
-    if (_selectedAgency != agency) {
+    print('Selecting agency: $agency (current: $_selectedAgency)');
+    
+    try {
+      _setLoading(true);
       _selectedAgency = agency;
       _selectedRoute = null;
       _selectedStop = null;
       notifyListeners();
       
       // Load agency-specific data
+      print('Loading data for agency: $agency');
       await loadRoutes(agency: agency);
       await loadStops(agency: agency);
       await loadFares(agency: agency);
+      
+      print('Agency data loaded successfully');
+    } catch (e) {
+      _setError('Failed to load agency data: ${e.toString()}');
+    } finally {
+      _setLoading(false);
     }
   }
 
   // Select route
-  void selectRoute(RouteModel route) {
-    _selectedRoute = route;
-    _selectedStop = null;
-    notifyListeners();
-    
-    // Load route-specific data
-    _loadRouteStops(route);
-    _loadRouteSchedules(route);
+  Future<void> selectRoute(RouteModel route) async {
+    print('Selecting route: ${route.routeId} - ${route.routeName}');
+    try {
+      _setLoading(true);
+      _selectedRoute = route;
+      _selectedStop = null;
+      notifyListeners();
+      
+      // Load route-specific data
+      await _loadRouteStops(route);
+      await _loadRouteSchedules(route);
+      
+      print('Route data loaded successfully');
+    } catch (e) {
+      _setError('Failed to load route data: ${e.toString()}');
+    } finally {
+      _setLoading(false);
+    }
   }
 
   // Load stops for selected route
   Future<void> _loadRouteStops(RouteModel route) async {
     try {
       final agency = route.isAMTS ? AppConstants.amtsAgency : AppConstants.brtsAgency;
+      print('Loading stops for route ${route.routeId} (agency: $agency)');
       _routeStops = await _firebaseService.getStopsForRoute(agency, route.routeId);
+      print('Loaded ${_routeStops.length} stops for route ${route.routeId}');
       notifyListeners();
     } catch (e) {
       _setError('Failed to load route stops: ${e.toString()}');
@@ -186,17 +231,20 @@ class TransitProvider with ChangeNotifier {
   Future<void> _loadRouteSchedules(RouteModel route) async {
     try {
       final agency = route.isAMTS ? AppConstants.amtsAgency : AppConstants.brtsAgency;
+      print('Loading trips for route ${route.routeId} (agency: $agency)');
       final trips = await _firebaseService.getTripsForRoute(agency, route.routeId);
       
       if (trips.isNotEmpty) {
         // Get schedule for first trip as example
+        print('Loading stop times for trip ${trips.first.tripId}');
         _routeSchedules = await _firebaseService.getStopTimesForTrip(
           agency,
-          route.routeId,
           trips.first.tripId,
         );
+        print('Loaded ${_routeSchedules.length} stop times');
       } else {
         _routeSchedules = [];
+        print('No trips found for route ${route.routeId}');
       }
       
       notifyListeners();
@@ -207,6 +255,7 @@ class TransitProvider with ChangeNotifier {
 
   // Select stop
   void selectStop(StopModel stop) {
+    print('Selecting stop: ${stop.stopId} - ${stop.stopName}');
     _selectedStop = stop;
     notifyListeners();
   }
@@ -222,7 +271,9 @@ class TransitProvider with ChangeNotifier {
     }
     
     try {
+      print('Searching routes for: $query');
       _searchResults = await _firebaseService.searchRoutes(query);
+      print('Found ${_searchResults.length} matching routes');
       notifyListeners();
     } catch (e) {
       _setError('Search failed: ${e.toString()}');
@@ -240,7 +291,9 @@ class TransitProvider with ChangeNotifier {
     }
     
     try {
+      print('Searching stops for: $query');
       _stopSearchResults = await _firebaseService.searchStops(query);
+      print('Found ${_stopSearchResults.length} matching stops');
       notifyListeners();
     } catch (e) {
       _setError('Stop search failed: ${e.toString()}');
@@ -264,7 +317,10 @@ class TransitProvider with ChangeNotifier {
   Future<List<TripModel>> getTripsForRoute(RouteModel route) async {
     try {
       final agency = route.isAMTS ? AppConstants.amtsAgency : AppConstants.brtsAgency;
-      return await _firebaseService.getTripsForRoute(agency, route.routeId);
+      print('Getting trips for route ${route.routeId} (agency: $agency)');
+      final trips = await _firebaseService.getTripsForRoute(agency, route.routeId);
+      print('Found ${trips.length} trips');
+      return trips;
     } catch (e) {
       _setError('Failed to load trips: ${e.toString()}');
       return [];
@@ -278,13 +334,27 @@ class TransitProvider with ChangeNotifier {
   ) async {
     try {
       final agency = route.isAMTS ? AppConstants.amtsAgency : AppConstants.brtsAgency;
-      return await _firebaseService.getStopTimesForTrip(
+      print('Getting stop times for trip ${trip.tripId} (agency: $agency)');
+      final stopTimes = await _firebaseService.getStopTimesForTrip(
         agency,
-        route.routeId,
         trip.tripId,
       );
+      print('Found ${stopTimes.length} stop times');
+      return stopTimes;
     } catch (e) {
       _setError('Failed to load schedule: ${e.toString()}');
+      return [];
+    }
+  }
+
+  // Get stops for a specific route
+  Future<List<StopModel>> getStopsForRoute(RouteModel route) async {
+    try {
+      final agency = route.isAMTS ? AppConstants.amtsAgency : AppConstants.brtsAgency;
+      print('Loading stops for route ${route.routeId} (agency: $agency)');
+      return await _firebaseService.getStopsForRoute(agency, route.routeId);
+    } catch (e) {
+      _setError('Failed to load stops for route: ${e.toString()}');
       return [];
     }
   }
@@ -297,6 +367,7 @@ class TransitProvider with ChangeNotifier {
 
   void _setError(String error) {
     _error = error;
+    print('ERROR: $error');
     notifyListeners();
   }
 

@@ -26,7 +26,17 @@ class _StopsScreenState extends State<StopsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _loadNearbyStops();
+    
+    // Ensure stops are loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<TransitProvider>(context, listen: false);
+      if (provider.stops.isEmpty) {
+        provider.loadStops();
+      }
+      if (provider.nearbyStops.isEmpty) {
+        provider.loadNearbyStops();
+      }
+    });
   }
 
   @override
@@ -66,344 +76,164 @@ class _StopsScreenState extends State<StopsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Stops'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              final provider = Provider.of<TransitProvider>(context, listen: false);
+              provider.loadStops();
+              provider.loadNearbyStops();
+            },
+          ),
+        ],
+      ),
       body: Consumer<TransitProvider>(
         builder: (context, provider, child) {
-          return NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [
-                SliverAppBar(
-                  expandedHeight: 200,
-                  floating: false,
-                  pinned: true,
-                  flexibleSpace: FlexibleSpaceBar(
-                    title: const Text(
-                      'Bus Stops',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    background: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        // Background image from assets
-                        Image.asset(
-                          AppConstants.brtsImagePath,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [Color(0xFF28A745), Color(0xFF20C997)],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        // Overlay
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.black.withOpacity(0.3),
-                                Colors.black.withOpacity(0.7),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // Content
-                        Positioned(
-                          bottom: 60,
-                          left: 16,
-                          right: 16,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.location_on,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '${provider.nearbyStops.length} stops found',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  bottom: PreferredSize(
-                    preferredSize: const Size.fromHeight(48),
-                    child: TabBar(
-                      controller: _tabController,
-                      indicatorColor: Colors.white,
-                      labelColor: Colors.white,
-                      unselectedLabelColor: Colors.white70,
-                      tabs: const [
-                        Tab(text: 'Nearby'),
-                        Tab(text: 'All Stops'),
-                        Tab(text: 'Favorites'),
-                      ],
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        // Search Bar
-                        Card(
-                          child: TextField(
-                            controller: _searchController,
-                            decoration: const InputDecoration(
-                              hintText: 'Search bus stops...',
-                              prefixIcon: Icon(Icons.search),
-                              suffixIcon: Icon(Icons.mic),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.all(16),
-                            ),
-                            onChanged: (query) {
-                              provider.searchStops(query);
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        // Location Actions
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _isLocationLoading ? null : _loadNearbyStops,
-                                icon: _isLocationLoading
-                                    ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Icon(Icons.my_location),
-                                label: Text(_isLocationLoading
-                                    ? 'Finding...'
-                                    : 'Find Nearby'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF28A745),
-                                  foregroundColor: Colors.white,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {
-                                  // Open map view
-                                },
-                                icon: const Icon(Icons.map),
-                                label: const Text('Map View'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        
-                        if (_locationError.isNotEmpty)
-                          Container(
-                            margin: const EdgeInsets.only(top: 16),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red.shade200),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.error_outline, color: Colors.red.shade700),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _locationError,
-                                    style: TextStyle(color: Colors.red.shade700),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ];
-            },
-            body: TabBarView(
-              controller: _tabController,
-              children: [
-                // Nearby Stops
-                _buildStopsList(provider.nearbyStops, provider, 'nearby'),
-                
-                // All Stops
-                _buildStopsList(
-                  provider.searchQuery.isNotEmpty
-                      ? provider.stopSearchResults
-                      : provider.stops,
-                  provider,
-                  'all',
-                ),
-                
-                // Favorites (placeholder)
-                _buildFavoritesTab(),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildStopsList(List<StopModel> stops, TransitProvider provider, String type) {
-    if (stops.isEmpty) {
-      return _buildEmptyState(type);
-    }
-
-    return RefreshIndicator(
-      onRefresh: () => _loadNearbyStops(),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: stops.length,
-        itemBuilder: (context, index) {
-          final stop = stops[index];
-          final distance = type == 'nearby' 
-              ? _calculateDistance(stop)
-              : null;
+          if (provider.isLoading || provider.isLocationLoading) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading stops...'),
+                ],
+              ),
+            );
+          }
           
-          return _StopCard(
-            stop: stop,
-            distance: distance,
-            onTap: () {
-              provider.selectStop(stop);
-              Navigator.pushNamed(context, '/stop-detail');
-            },
+          if (provider.error.isNotEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error: ${provider.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      provider.loadStops();
+                      provider.loadNearbyStops();
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+          
+          // Show nearby stops if available, otherwise show all stops
+          final stopsToShow = provider.nearbyStops.isNotEmpty 
+              ? provider.nearbyStops 
+              : provider.stops;
+          
+          if (stopsToShow.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.location_off,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'No stops found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Try refreshing or check your connection',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      provider.loadStops();
+                      provider.loadNearbyStops();
+                    },
+                    child: const Text('Refresh'),
+                  ),
+                ],
+              ),
+            );
+          }
+          
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  provider.nearbyStops.isNotEmpty ? 'Nearby Stops' : 'All Stops',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppConstants.padding,
+                    vertical: 8,
+                  ),
+                  itemCount: stopsToShow.length,
+                  itemBuilder: (context, index) {
+                    return _buildStopCard(stopsToShow[index], provider);
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
     );
   }
-
-  Widget _buildEmptyState(String type) {
-    String title;
-    String subtitle;
-    String imagePath;
-    
-    switch (type) {
-      case 'nearby':
-        title = 'No nearby stops found';
-        subtitle = 'Try refreshing your location or increase search radius';
-        imagePath = AppConstants.noRouteImagePath;
-        break;
-      case 'all':
-        title = 'No stops found';
-        subtitle = 'Try adjusting your search criteria';
-        imagePath = AppConstants.noInternetImagePath;
-        break;
-      default:
-        title = 'No favorites yet';
-        subtitle = 'Add stops to favorites for quick access';
-        imagePath = AppConstants.loadingImagePath;
-    }
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            imagePath,
-            width: 120,
-            height: 120,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Icon(
-                Icons.location_off,
-                size: 80,
-                color: Colors.grey[400],
-              );
-            },
+  
+  Widget _buildStopCard(StopModel stop, TransitProvider provider) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.blue.shade100,
+            borderRadius: BorderRadius.circular(8),
           ),
-          const SizedBox(height: 24),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+          child: const Center(
+            child: Icon(
+              Icons.directions_bus,
+              color: Colors.blue,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: _loadNearbyStops,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFavoritesTab() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            AppConstants.featureImagePath,
-            width: 120,
-            height: 120,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(
-                Icons.favorite_outline,
-                size: 80,
-                color: Colors.grey,
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'No favorite stops yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Tap the star icon on any stop to add it to favorites',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
+        ),
+        title: Text(
+          stop.stopName,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          stop.description.isNotEmpty 
+              ? stop.description 
+              : 'Stop ID: ${stop.stopId}',
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: () {
+          provider.selectStop(stop);
+          Navigator.pushNamed(context, '/stop-detail');
+        },
       ),
     );
   }

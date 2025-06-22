@@ -172,6 +172,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
               ],
             ),
           ),
+          bottomSheet: _buildFareInfoSheet(provider, route),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () {
               // Share route
@@ -392,6 +393,111 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildFareInfoSheet(TransitProvider provider, RouteModel route) {
+    final fares = provider.fares.where((fare) => 
+        fare.agencyId.isEmpty || 
+        fare.agencyId.toLowerCase() == route.agency.toLowerCase()).toList();
+    
+    if (fares.isEmpty) {
+      return const SizedBox.shrink(); // Don't show anything if no fares
+    }
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.payments_outlined, color: Colors.green),
+              const SizedBox(width: 8),
+              const Text(
+                'Fare Information',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () {
+                  // Show more detailed fare information
+                  _showFareDetailsDialog(context, fares);
+                },
+                child: const Text('More Info'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            children: fares.take(2).map((fare) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${fare.formattedPrice} (${fare.paymentMethodDisplay})',
+                  style: TextStyle(
+                    color: Colors.green.shade800,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _showFareDetailsDialog(BuildContext context, List<dynamic> fares) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Fare Details'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: fares.map((fare) {
+              return ListTile(
+                title: Text(fare.formattedPrice),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(fare.paymentMethodDisplay),
+                    Text(fare.transfersDisplay),
+                  ],
+                ),
+                leading: const Icon(Icons.confirmation_number_outlined),
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 }
